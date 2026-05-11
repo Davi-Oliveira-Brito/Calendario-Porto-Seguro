@@ -1,0 +1,4 @@
+﻿dia,mes,ano,nome,local,horario,cor,feriado
+1,6,2026,Feriado – Corpus Christi,,,c-red,true
+5,6,2026,Reunião de Pais – Ensino Médio,Auditório,19h às 21h,c-blue,false
+10,6,2026,Olimpíada de Português,Colégio,Período regular,c-green,false
