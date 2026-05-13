@@ -283,6 +283,43 @@ function DeleteAllModal({ month, year, onConfirm, onClose }: DeleteAllModalProps
   )
 }
 
+// ── Modal confirmar delete ────────────────────────────────────────────────────
+
+interface DeleteConfirmModalProps {
+  items: EventRow[]
+  onConfirm: () => void
+  onClose: () => void
+}
+
+function DeleteConfirmModal({ items, onConfirm, onClose }: DeleteConfirmModalProps) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm flex flex-col gap-5" onClick={e => e.stopPropagation()}>
+        <div>
+          <h3 className="text-base font-bold text-gray-900 mb-1">
+            Deletar {items.length} evento{items.length !== 1 ? 's' : ''}
+          </h3>
+          <p className="text-sm text-gray-500 mb-3">Tem certeza? Essa ação não pode ser desfeita.</p>
+          <ul className="flex flex-col gap-1.5 max-h-48 overflow-y-auto">
+            {items.map(ev => (
+              <li key={ev.id} className="text-sm flex gap-2">
+                <span className="text-gray-400 w-6 shrink-0">{ev.dia}</span>
+                <span className="font-medium text-gray-800">{ev.nome}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="flex gap-3 justify-end">
+          <button onClick={onClose} className={btnNeutral}>Cancelar</button>
+          <button onClick={onConfirm} className={btnDanger}>
+            Deletar{items.length > 1 ? ` ${items.length}` : ''}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function AdminPage() {
@@ -299,9 +336,11 @@ export default function AdminPage() {
   const [events,  setEvents]  = useState<EventRow[]>([])
   const [loading, setLoading] = useState(false)
   const [form,    setForm]    = useState(EMPTY_FORM)
-  const [toasts,       setToasts]       = useState<ToastItem[]>([])
+  const [toasts,         setToasts]         = useState<ToastItem[]>([])
   const [showDeleteAll,  setShowDeleteAll]  = useState(false)
   const [showImportModal, setShowImportModal] = useState(false)
+  const [selectedIds,   setSelectedIds]   = useState<Set<number>>(new Set())
+  const [pendingDelete, setPendingDelete] = useState<EventRow[] | null>(null)
 
   function toast(message: string, kind: ToastKind = 'success') {
     const id = ++toastSeq
@@ -321,6 +360,7 @@ export default function AdminPage() {
   }, [selectedMonth, selectedYear])
 
   useEffect(() => { if (authed) loadEvents() }, [authed, loadEvents])
+  useEffect(() => { setSelectedIds(new Set()) }, [selectedMonth, selectedYear])
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -338,11 +378,34 @@ export default function AdminPage() {
     setAuthed(true)
   }
 
-  async function handleDelete(id: number) {
-    const { error } = await supabase.from(TABLE).delete().eq('id', id)
-    if (error) { toast('Erro ao deletar: ' + error.message, 'error'); return }
-    toast('Evento deletado.')
+  function handleDelete(ev: EventRow) {
+    setPendingDelete([ev])
+  }
+
+  function handleDeleteSelected() {
+    setPendingDelete(events.filter(ev => selectedIds.has(ev.id)))
+  }
+
+  async function handleConfirmDelete() {
+    if (!pendingDelete) return
+    const ids = pendingDelete.map(e => e.id)
+    const { error } = await supabase.from(TABLE).delete().in('id', ids)
+    if (error) { toast('Erro ao deletar: ' + error.message, 'error') }
+    else { toast(`${ids.length} evento(s) deletado(s).`); setSelectedIds(new Set()) }
+    setPendingDelete(null)
     loadEvents()
+  }
+
+  function toggleSelect(id: number) {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+
+  function toggleAll() {
+    setSelectedIds(prev => prev.size === events.length ? new Set() : new Set(events.map(e => e.id)))
   }
 
   async function handleDeleteAll() {
@@ -471,6 +534,14 @@ export default function AdminPage() {
   return (
     <>
       <Toasts items={toasts} onRemove={id => setToasts(prev => prev.filter(t => t.id !== id))} />
+
+      {pendingDelete && (
+        <DeleteConfirmModal
+          items={pendingDelete}
+          onConfirm={handleConfirmDelete}
+          onClose={() => setPendingDelete(null)}
+        />
+      )}
 
       {showImportModal && (
         <ImportModal
@@ -628,6 +699,11 @@ export default function AdminPage() {
                   <button onClick={handleExportCSV} className={btnNeutral}>
                     Exportar CSV
                   </button>
+                  {selectedIds.size > 0 && (
+                    <button onClick={handleDeleteSelected} className={btnDanger}>
+                      Deletar selecionados ({selectedIds.size})
+                    </button>
+                  )}
                   <button
                     onClick={() => setShowDeleteAll(true)}
                     disabled={events.length === 0}
@@ -644,6 +720,15 @@ export default function AdminPage() {
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 text-gray-500 uppercase text-xs">
                   <tr>
+                    <th className="pl-6 pr-2 py-3">
+                      <input
+                        type="checkbox"
+                        checked={events.length > 0 && selectedIds.size === events.length}
+                        ref={el => { if (el) el.indeterminate = selectedIds.size > 0 && selectedIds.size < events.length }}
+                        onChange={toggleAll}
+                        className="w-4 h-4 accent-escola-blue"
+                      />
+                    </th>
                     <th className="px-6 py-3 text-left">Dia</th>
                     <th className="px-6 py-3 text-left">Nome</th>
                     <th className="px-6 py-3 text-left">Local</th>
@@ -655,13 +740,21 @@ export default function AdminPage() {
                 </thead>
                 <tbody>
                   {loading && (
-                    <tr><td colSpan={7} className="px-6 py-8 text-center text-gray-400">Carregando...</td></tr>
+                    <tr><td colSpan={8} className="px-6 py-8 text-center text-gray-400">Carregando...</td></tr>
                   )}
                   {!loading && events.length === 0 && (
-                    <tr><td colSpan={7} className="px-6 py-8 text-center text-gray-400">Nenhum evento neste mês.</td></tr>
+                    <tr><td colSpan={8} className="px-6 py-8 text-center text-gray-400">Nenhum evento neste mês.</td></tr>
                   )}
                   {events.map(ev => (
                     <tr key={ev.id} className="border-t border-gray-100 hover:bg-gray-50">
+                      <td className="pl-6 pr-2 py-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(ev.id)}
+                          onChange={() => toggleSelect(ev.id)}
+                          className="w-4 h-4 accent-escola-blue"
+                        />
+                      </td>
                       <td className="px-6 py-3 text-gray-900">{ev.dia}</td>
                       <td className="px-6 py-3 text-gray-900 font-medium">{ev.nome}</td>
                       <td className="px-6 py-3 text-gray-500">{ev.local ?? '—'}</td>
@@ -672,7 +765,7 @@ export default function AdminPage() {
                       <td className="px-6 py-3 text-gray-700">{ev.feriado ? 'Sim' : 'Não'}</td>
                       <td className="px-6 py-3">
                         <button
-                          onClick={() => handleDelete(ev.id)}
+                          onClick={() => handleDelete(ev)}
                           className="text-escola-red hover:opacity-70 text-xs font-semibold transition"
                         >
                           Deletar
