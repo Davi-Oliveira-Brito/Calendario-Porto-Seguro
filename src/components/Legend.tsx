@@ -33,7 +33,7 @@ export default function Legend({ events }: Props) {
   if (usedColors.length === 0) return null
 
   return (
-    <div className="px-6 pb-6">
+    <div className="px-2 pb-4 sm:px-6 sm:pb-6">
       <p className="text-xs font-bold uppercase tracking-widest text-escola-blue mb-3 opacity-70">Legenda</p>
       <div className="flex flex-wrap gap-3">
         {usedColors.map(color => (
