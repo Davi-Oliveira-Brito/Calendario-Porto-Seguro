@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
+import { supabase } from '@/lib/supabase'
 import { CalendarEvent } from '@/types/event'
 import DayCell from './DayCell'
 import Legend from './Legend'
@@ -21,10 +22,36 @@ export default function Calendar() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    setLoading(true)
-    fetch(`/api/events?mes=${mes}&ano=${ano}`)
-      .then(r => r.json())
-      .then(data => { setEvents(data); setLoading(false) })
+    let cancelled = false
+
+    async function fetchEvents(showLoading: boolean) {
+      if (showLoading) setLoading(true)
+      const { data } = await supabase
+        .from('eventos')
+        .select('*')
+        .eq('mes', mes)
+        .eq('ano', ano)
+        .order('dia', { ascending: true })
+      if (!cancelled) { setEvents((data as CalendarEvent[]) ?? []); setLoading(false) }
+    }
+
+    fetchEvents(true)
+
+    const channel = supabase
+      .channel(`eventos-${mes}-${ano}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'eventos' }, () => {
+        fetchEvents(false)
+      })
+      .subscribe()
+
+    // ping diário para manter o projeto Supabase ativo
+    const keepAlive = setInterval(() => fetchEvents(false), 86_400_000)
+
+    return () => {
+      cancelled = true
+      supabase.removeChannel(channel)
+      clearInterval(keepAlive)
+    }
   }, [mes, ano])
 
   const firstDow    = new Date(ano, mes - 1, 1).getDay()
