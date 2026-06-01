@@ -38,6 +38,7 @@ export default function Calendar() {
     const fd = new Date(today.getFullYear(), today.getMonth(), 1).getDay()
     return Math.floor((today.getDate() - 1 + fd) / 7)
   })
+  const [visible, setVisible] = useState(true)
 
   useEffect(() => {
     let timeout: ReturnType<typeof setTimeout>
@@ -104,6 +105,18 @@ export default function Calendar() {
     () => buildWeeks(daysInMonth, firstDow),
     [daysInMonth, firstDow]
   )
+
+  useEffect(() => {
+    if (weeks.length <= 1) return
+    const interval = setInterval(() => {
+      setVisible(false)
+      setTimeout(() => {
+        setWeekIndex(i => (i + 1) % weeks.length)
+        setVisible(true)
+      }, 300)
+    }, 15_000)
+    return () => clearInterval(interval)
+  }, [weeks.length])
 
   const prevMonth = () => {
     if (mes === 1) { setMes(12); setAno(a => a - 1) }
@@ -222,7 +235,7 @@ export default function Calendar() {
           </div>
         ) : (
           <div
-            className="flex-1 min-h-0 grid grid-cols-7 gap-2"
+            className={`flex-1 min-h-0 grid grid-cols-7 gap-2 transition-opacity duration-300 ${visible ? 'opacity-100' : 'opacity-0'}`}
             style={{ gridAutoRows: 'minmax(0, 1fr)' }}
           >
             {(weeks[weekIndex] ?? []).map((day, i) =>
