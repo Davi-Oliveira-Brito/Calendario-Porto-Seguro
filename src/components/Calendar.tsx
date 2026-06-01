@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 import { CalendarEvent } from '@/types/event'
@@ -14,12 +14,30 @@ const MONTHS = [
 
 const WEEKDAYS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb']
 
+function buildWeeks(daysInMonth: number, firstDow: number): (number | null)[][] {
+  const weeks: (number | null)[][] = []
+  let week: (number | null)[] = Array(firstDow).fill(null)
+  for (let d = 1; d <= daysInMonth; d++) {
+    week.push(d)
+    if (week.length === 7) {
+      weeks.push(week)
+      week = []
+    }
+  }
+  if (week.length > 0) weeks.push(week)
+  return weeks
+}
+
 export default function Calendar() {
   const today = new Date()
   const [mes, setMes] = useState(today.getMonth() + 1)
   const [ano, setAno] = useState(today.getFullYear())
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [loading, setLoading] = useState(true)
+  const [weekIndex, setWeekIndex] = useState(() => {
+    const fd = new Date(today.getFullYear(), today.getMonth(), 1).getDay()
+    return Math.floor((today.getDate() - 1 + fd) / 7)
+  })
 
   useEffect(() => {
     let timeout: ReturnType<typeof setTimeout>
@@ -39,6 +57,10 @@ export default function Calendar() {
     scheduleNextMidnight()
     return () => clearTimeout(timeout)
   }, [])
+
+  useEffect(() => {
+    setWeekIndex(0)
+  }, [mes, ano])
 
   useEffect(() => {
     let cancelled = false
@@ -75,6 +97,11 @@ export default function Calendar() {
 
   const firstDow    = new Date(ano, mes - 1, 1).getDay()
   const daysInMonth = new Date(ano, mes, 0).getDate()
+
+  const weeks = useMemo(
+    () => buildWeeks(daysInMonth, firstDow),
+    [daysInMonth, firstDow]
+  )
 
   const prevMonth = () => {
     if (mes === 1) { setMes(12); setAno(a => a - 1) }
@@ -196,25 +223,22 @@ export default function Calendar() {
             className="flex-1 min-h-0 grid grid-cols-7 gap-2"
             style={{ gridAutoRows: 'minmax(0, 1fr)' }}
           >
-            {Array.from({ length: firstDow }).map((_, i) => (
-              <div key={`empty-${i}`} />
-            ))}
-            {Array.from({ length: daysInMonth }).map((_, i) => {
-              const day = i + 1
-              const isToday =
-                today.getDate()     === day &&
-                today.getMonth() + 1 === mes &&
-                today.getFullYear()  === ano
-              return (
+            {(weeks[weekIndex] ?? []).map((day, i) =>
+              day === null ? (
+                <div key={`empty-${i}`} />
+              ) : (
                 <DayCell
                   key={day}
                   day={day}
                   events={eventsForDay(day)}
-                  isToday={isToday}
-                  onClick={() => setSelectedDay(day)}
+                  isToday={
+                    today.getDate()      === day &&
+                    today.getMonth() + 1 === mes &&
+                    today.getFullYear()  === ano
+                  }
                 />
               )
-            })}
+            )}
           </div>
         )}
 
