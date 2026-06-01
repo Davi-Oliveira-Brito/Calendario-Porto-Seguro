@@ -12,8 +12,7 @@ const MONTHS = [
   'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro',
 ]
 
-const WEEKDAYS    = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb']
-const WEEKDAYS_SM = ['D','S','T','Q','Q','S','S']
+const WEEKDAYS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb']
 
 export default function Calendar() {
   const today = new Date()
@@ -92,7 +91,7 @@ export default function Calendar() {
   const selectedEvents = selectedDay !== null ? eventsForDay(selectedDay) : []
 
   return (
-    <div className="min-h-screen bg-[#fafafa]">
+    <div className="h-screen flex flex-col overflow-hidden bg-[#fafafa]">
 
       {/* Modal mobile — eventos do dia */}
       {selectedDay !== null && (
@@ -133,40 +132,40 @@ export default function Calendar() {
       )}
 
       {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-2">
+      <header className="shrink-0 bg-white border-b border-gray-200">
+        <div className="px-4 sm:px-6 py-3 flex items-center justify-between gap-2">
 
           {/* Logo + identificação */}
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-4">
             <Image
               src="/logo (1).png"
               alt="Colégio Visconde de Porto Seguro"
               width={80}
               height={58}
-              className="object-contain w-10 sm:w-20"
+              className="object-contain w-14 sm:w-20"
             />
-            <div className="border-l border-gray-200 pl-2 sm:pl-4">
-              <p className="hidden sm:block text-xs text-gray-500 leading-none mb-0.5">Calendário escolar</p>
-              <p className="text-sm sm:text-base font-bold text-escola-blue leading-none">Unidade Panamby</p>
+            <div className="border-l border-gray-200 pl-4">
+              <p className="text-xs text-gray-500 leading-none mb-0.5">Calendário escolar</p>
+              <p className="text-base font-bold text-escola-blue leading-none">Unidade Panamby</p>
             </div>
           </div>
 
           {/* Navegação de mês */}
-          <div className="flex items-center gap-2 sm:gap-4">
-            <span className="text-base sm:text-2xl font-light text-gray-800">
+          <div className="flex items-center gap-4">
+            <span className="text-2xl font-light text-gray-800">
               {MONTHS[mes - 1]}{' '}
               <span className="font-semibold text-escola-blue">{ano}</span>
             </span>
-            <div className="flex gap-1 sm:gap-2">
+            <div className="flex gap-2">
               <button
                 onClick={prevMonth}
-                className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg border border-gray-200 bg-white text-gray-600 hover:border-escola-blue hover:text-escola-blue transition flex items-center justify-center text-sm"
+                className="w-9 h-9 rounded-lg border border-gray-200 bg-white text-gray-600 hover:border-escola-blue hover:text-escola-blue transition flex items-center justify-center"
               >
                 ←
               </button>
               <button
                 onClick={nextMonth}
-                className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg border border-gray-200 bg-white text-gray-600 hover:border-escola-blue hover:text-escola-blue transition flex items-center justify-center text-sm"
+                className="w-9 h-9 rounded-lg border border-gray-200 bg-white text-gray-600 hover:border-escola-blue hover:text-escola-blue transition flex items-center justify-center"
               >
                 →
               </button>
@@ -176,25 +175,27 @@ export default function Calendar() {
         </div>
       </header>
 
-      <div className="p-2 sm:p-6">
+      <div className="flex-1 min-h-0 flex flex-col px-4 pt-2 pb-3 gap-1.5">
 
         {/* Cabeçalho dos dias da semana */}
-        <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-1 sm:mb-2">
-          {WEEKDAYS.map((d, i) => (
+        <div className="shrink-0 grid grid-cols-7 gap-2">
+          {WEEKDAYS.map((d) => (
             <div key={d} className="text-center text-xs font-bold uppercase tracking-wider text-escola-blue py-1 opacity-70">
-              <span className="hidden sm:inline">{d}</span>
-              <span className="sm:hidden">{WEEKDAYS_SM[i]}</span>
+              {d}
             </div>
           ))}
         </div>
 
         {/* Grid */}
         {loading ? (
-          <div className="flex items-center justify-center h-96 text-gray-400 text-sm">
+          <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">
             Carregando eventos...
           </div>
         ) : (
-          <div className="grid grid-cols-7 gap-1 sm:gap-2">
+          <div
+            className="flex-1 min-h-0 grid grid-cols-7 gap-2"
+            style={{ gridAutoRows: 'minmax(0, 1fr)' }}
+          >
             {Array.from({ length: firstDow }).map((_, i) => (
               <div key={`empty-${i}`} />
             ))}
@@ -216,9 +217,9 @@ export default function Calendar() {
             })}
           </div>
         )}
-      </div>
 
-      <Legend events={events} />
+        <Legend events={events} />
+      </div>
     </div>
   )
 }

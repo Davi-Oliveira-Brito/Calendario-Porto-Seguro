@@ -12,18 +12,6 @@ const COLOR_CLASSES: Record<string, string> = {
   'c-gray':   'bg-gray-100 text-gray-900',
 }
 
-const COLOR_DOT: Record<string, string> = {
-  'c-blue':   'bg-blue-400',
-  'c-green':  'bg-green-400',
-  'c-amber':  'bg-amber-400',
-  'c-purple': 'bg-purple-400',
-  'c-coral':  'bg-orange-400',
-  'c-teal':   'bg-teal-400',
-  'c-pink':   'bg-pink-400',
-  'c-red':    'bg-red-400',
-  'c-gray':   'bg-gray-400',
-}
-
 interface Props {
   day: number
   events: CalendarEvent[]
@@ -38,17 +26,15 @@ export default function DayCell({ day, events, isToday, onClick }: Props) {
     <div
       onClick={onClick}
       className={[
-        'rounded-xl border flex flex-col shadow-[0_1px_4px_rgba(0,0,0,0.06)]',
-        'min-h-14 p-1 gap-0.5',
-        'sm:min-h-24 sm:p-2 sm:gap-1',
+        'rounded-xl border flex flex-col overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.06)]',
+        'h-full p-2 gap-1',
         isHoliday ? 'bg-red-50 border-red-200' : 'bg-white border-gray-100',
         isToday   ? 'ring-2 ring-escola-red'   : '',
-        onClick   ? 'sm:cursor-default active:brightness-95' : '',
+        onClick   ? 'active:brightness-95' : '',
       ].join(' ')}
     >
       <span className={[
-        'text-[10px] sm:text-xs font-bold',
-        'mb-0.5 sm:mb-1',
+        'text-sm font-bold leading-none shrink-0',
         isToday   ? 'text-escola-red'  :
         isHoliday ? 'text-escola-red'  :
                     'text-gray-400',
@@ -56,26 +42,13 @@ export default function DayCell({ day, events, isToday, onClick }: Props) {
         {day}
       </span>
 
-      {/* Mobile: bolinhas coloridas */}
-      {events.length > 0 && (
-        <div className="flex flex-wrap gap-0.5 sm:hidden">
-          {events.slice(0, 4).map((ev, i) => (
-            <div
-              key={i}
-              className={`w-2 h-2 rounded-full ${COLOR_DOT[ev.cor] ?? COLOR_DOT['c-gray']}`}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Desktop: badges com texto */}
-      <div className="hidden sm:flex flex-col gap-1">
+      <div className="flex-1 min-h-0 flex flex-col gap-1 overflow-hidden">
         {events.map((ev, i) => (
           <div
             key={i}
-            className={`text-[10px] leading-tight rounded px-1.5 py-1 font-medium ${COLOR_CLASSES[ev.cor] ?? COLOR_CLASSES['c-gray']}`}
+            className={`text-xs leading-snug rounded px-1.5 py-1 font-medium shrink-0 ${COLOR_CLASSES[ev.cor] ?? COLOR_CLASSES['c-gray']}`}
           >
-            <div>{ev.nome}</div>
+            <div className="truncate font-semibold">{ev.nome}</div>
             {ev.horario && <div className="opacity-60 font-normal">{ev.horario}</div>}
           </div>
         ))}
