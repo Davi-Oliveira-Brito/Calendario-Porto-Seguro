@@ -108,14 +108,18 @@ export default function Calendar() {
 
   useEffect(() => {
     if (weeks.length <= 1) return
+    let fadeTimer: ReturnType<typeof setTimeout>
     const interval = setInterval(() => {
       setVisible(false)
-      setTimeout(() => {
+      fadeTimer = setTimeout(() => {
         setWeekIndex(i => (i + 1) % weeks.length)
         setVisible(true)
       }, 300)
     }, 15_000)
-    return () => clearInterval(interval)
+    return () => {
+      clearInterval(interval)
+      clearTimeout(fadeTimer)
+    }
   }, [weeks.length])
 
   const prevMonth = () => {
