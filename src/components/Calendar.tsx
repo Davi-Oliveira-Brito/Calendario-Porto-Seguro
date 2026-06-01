@@ -152,6 +152,16 @@ export default function Calendar() {
               {MONTHS[mes - 1]}{' '}
               <span className="font-semibold text-escola-blue">{ano}</span>
             </span>
+            <div className="flex gap-2 items-center">
+              {weeks.map((_, i) => (
+                <div
+                  key={i}
+                  className={`w-2.5 h-2.5 rounded-full transition-colors duration-300 ${
+                    i === weekIndex ? 'bg-escola-blue' : 'bg-gray-200'
+                  }`}
+                />
+              ))}
+            </div>
           </div>
 
         </div>
