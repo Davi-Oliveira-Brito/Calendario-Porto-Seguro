@@ -122,60 +122,10 @@ export default function Calendar() {
     }
   }, [weeks.length])
 
-  const prevMonth = () => {
-    if (mes === 1) { setMes(12); setAno(a => a - 1) }
-    else setMes(m => m - 1)
-  }
-  const nextMonth = () => {
-    if (mes === 12) { setMes(1); setAno(a => a + 1) }
-    else setMes(m => m + 1)
-  }
-
   const eventsForDay = (day: number) => events.filter(e => e.dia === day)
-
-  const [selectedDay, setSelectedDay] = useState<number | null>(null)
-  const selectedEvents = selectedDay !== null ? eventsForDay(selectedDay) : []
 
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-[#fafafa]">
-
-      {/* Modal mobile — eventos do dia */}
-      {selectedDay !== null && (
-        <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:hidden"
-          onClick={() => setSelectedDay(null)}
-        >
-          <div
-            className="bg-white w-full rounded-t-2xl p-5 flex flex-col gap-4 max-h-[70vh] overflow-y-auto"
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-gray-900">
-                {selectedDay} de {MONTHS[mes - 1]}
-              </h3>
-              <button
-                onClick={() => setSelectedDay(null)}
-                className="text-gray-400 hover:text-gray-600 text-xl leading-none"
-              >
-                ×
-              </button>
-            </div>
-            {selectedEvents.length === 0 ? (
-              <p className="text-sm text-gray-400">Nenhum evento neste dia.</p>
-            ) : (
-              <ul className="flex flex-col gap-3">
-                {selectedEvents.map((ev, i) => (
-                  <li key={i} className="flex flex-col gap-0.5">
-                    <span className="text-sm font-semibold text-gray-900">{ev.nome}</span>
-                    {ev.horario && <span className="text-xs text-gray-500">{ev.horario}</span>}
-                    {ev.local   && <span className="text-xs text-gray-500">{ev.local}</span>}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* Header */}
       <header className="shrink-0 bg-white border-b border-gray-200">
@@ -202,20 +152,6 @@ export default function Calendar() {
               {MONTHS[mes - 1]}{' '}
               <span className="font-semibold text-escola-blue">{ano}</span>
             </span>
-            <div className="flex gap-2">
-              <button
-                onClick={prevMonth}
-                className="w-9 h-9 rounded-lg border border-gray-200 bg-white text-gray-600 hover:border-escola-blue hover:text-escola-blue transition flex items-center justify-center"
-              >
-                ←
-              </button>
-              <button
-                onClick={nextMonth}
-                className="w-9 h-9 rounded-lg border border-gray-200 bg-white text-gray-600 hover:border-escola-blue hover:text-escola-blue transition flex items-center justify-center"
-              >
-                →
-              </button>
-            </div>
           </div>
 
         </div>
