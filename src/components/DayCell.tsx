@@ -22,7 +22,7 @@ interface Props {
 export default function DayCell({ day, events, isToday, onClick }: Props) {
   const isHoliday = events.some(e => e.feriado)
   const count = events.length
-  const textSize  = count > 4 ? 'text-[9px]'  : count > 2 ? 'text-[10px]' : 'text-xs'
+  const textSize  = 'text-sm'
   const px        = count > 4 ? 'px-1'         : 'px-1.5'
   const showHour  = count <= 3
 
@@ -52,8 +52,8 @@ export default function DayCell({ day, events, isToday, onClick }: Props) {
             key={i}
             className={`flex-1 min-h-0 flex flex-col justify-center overflow-hidden rounded ${px} font-medium ${textSize} ${COLOR_CLASSES[ev.cor] ?? COLOR_CLASSES['c-gray']}`}
           >
-            <div className="truncate font-semibold leading-tight">{ev.nome}</div>
-            {showHour && ev.horario && <div className="opacity-60 font-normal leading-tight truncate">{ev.horario}</div>}
+            <div className="line-clamp-2 font-semibold leading-tight">{ev.nome}</div>
+            {showHour && ev.horario && <div className="opacity-60 font-normal leading-tight line-clamp-1">{ev.horario}</div>}
           </div>
         ))}
       </div>

@@ -115,7 +115,7 @@ export default function Calendar() {
         setWeekIndex(i => (i + 1) % weeks.length)
         setVisible(true)
       }, 300)
-    }, 15_000)
+    }, 20_000)
     return () => {
       clearInterval(interval)
       clearTimeout(fadeTimer)
