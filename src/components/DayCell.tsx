@@ -21,6 +21,10 @@ interface Props {
 
 export default function DayCell({ day, events, isToday, onClick }: Props) {
   const isHoliday = events.some(e => e.feriado)
+  const count = events.length
+  const textSize  = count > 4 ? 'text-[9px]'  : count > 2 ? 'text-[10px]' : 'text-xs'
+  const px        = count > 4 ? 'px-1'         : 'px-1.5'
+  const showHour  = count <= 3
 
   return (
     <div
@@ -42,14 +46,14 @@ export default function DayCell({ day, events, isToday, onClick }: Props) {
         {day}
       </span>
 
-      <div className="flex-1 min-h-0 flex flex-col gap-1 overflow-hidden">
+      <div className="flex-1 min-h-0 flex flex-col gap-0.5 overflow-hidden">
         {events.map((ev, i) => (
           <div
             key={i}
-            className={`text-xs leading-snug rounded px-1.5 py-1 font-medium shrink-0 ${COLOR_CLASSES[ev.cor] ?? COLOR_CLASSES['c-gray']}`}
+            className={`flex-1 min-h-0 flex flex-col justify-center overflow-hidden rounded ${px} font-medium ${textSize} ${COLOR_CLASSES[ev.cor] ?? COLOR_CLASSES['c-gray']}`}
           >
-            <div className="truncate font-semibold">{ev.nome}</div>
-            {ev.horario && <div className="opacity-60 font-normal">{ev.horario}</div>}
+            <div className="truncate font-semibold leading-tight">{ev.nome}</div>
+            {showHour && ev.horario && <div className="opacity-60 font-normal leading-tight truncate">{ev.horario}</div>}
           </div>
         ))}
       </div>
