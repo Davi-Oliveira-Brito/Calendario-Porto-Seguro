@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 import { CalendarEvent } from '@/types/event'
@@ -58,7 +58,9 @@ export default function Calendar() {
     return () => clearTimeout(timeout)
   }, [])
 
+  const isFirstRender = useRef(true)
   useEffect(() => {
+    if (isFirstRender.current) { isFirstRender.current = false; return }
     setWeekIndex(0)
   }, [mes, ano])
 
